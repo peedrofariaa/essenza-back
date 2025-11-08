@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                     // EcmaScript target
+    "module": "node16",                   // Tipo de módulos do Node.js
+    "rootDir": "./src",                     // Onde fica seu código fonte .ts
+    "outDir": "./dist",                     // Para onde vão os arquivos compilados .js
+    "strict": true,                         // Checagem rigorosa de tipos (recomendado)
+    "esModuleInterop": true,                // Permite default imports de libs CommonJS
+    "skipLibCheck": true,                   // Não checa tipos de dependências
+    "forceConsistentCasingInFileNames": true, // Consistência em nomes de arquivos
+    "moduleResolution": "node16"              // Resolve imports estilo Node
+  },
+  "include": ["src"],                       // Onde estão os arquivos do projeto
+  "exclude": ["node_modules", "dist"]       // Ignora essas pastas
+}
