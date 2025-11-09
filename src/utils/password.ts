@@ -1,6 +1,6 @@
-import bcrypt from "bcryptjs";
+import bcrypt from 'bcryptjs'
 
-const ROUNDS = 10;
+const ROUNDS = 10
 
-export const hashPassword = async (plain: string) => bcrypt.hash(plain, ROUNDS);
-export const verifyPassword = async (plain: string, hash: string) => bcrypt.compare(plain, hash);
+export const hashPassword = async (plain: string) => bcrypt.hash(plain, ROUNDS)
+export const verifyPassword = async (plain: string, hash: string) => bcrypt.compare(plain, hash)
