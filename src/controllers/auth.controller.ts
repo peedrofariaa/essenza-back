@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { prisma } from '../prisma/client'
+import { prisma } from '../lib/client'
 import { Prisma } from '../generated/prisma'
 import { hashPassword, verifyPassword } from '../utils/password'
 import { sendResetEmail } from '../utils/mail'

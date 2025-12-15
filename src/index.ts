@@ -4,6 +4,10 @@ import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 dotenv.config()
 import authRoutes from './routes/auth.routes'
+import productsRoutes from './routes/product.routes'
+import cartRoutes from './routes/product.routes'
+import shippingRoutes from './routes/shipping.routes'
+import orderRoutes from './routes/order.routes'
 
 const app = express()
 
@@ -17,6 +21,10 @@ app.use(
 app.use(express.json())
 app.use(cookieParser())
 app.use('/auth', authRoutes)
+app.use('/products', productsRoutes)
+app.use('/cart', cartRoutes)
+app.use('/shipping', shippingRoutes)
+app.use('order', orderRoutes)
 
 app.get('/', (_req, res) => {
   res.send('API Essenza no ar!')
