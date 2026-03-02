@@ -7,10 +7,10 @@ const CEP_ORIGEM = process.env.SUPERFRETE_CEP_ORIGEM
 
 type ShippingItem = {
   quantity: number
-  weight: number // kg
-  height: number // cm
-  width: number // cm
-  length: number // cm
+  weight: number
+  height: number
+  width: number
+  length: number
 }
 
 export async function calculateShipping(req: Request, res: Response) {
@@ -24,7 +24,6 @@ export async function calculateShipping(req: Request, res: Response) {
       return res.status(400).json({ error: 'CEP e itens são obrigatórios' })
     }
 
-    // Calcular dimensões totais (simplificado - você pode ajustar)
     const totalWeight = items.reduce((sum, item) => sum + item.weight * item.quantity, 0)
     const maxHeight = Math.max(...items.map((i) => i.height))
     const maxWidth = Math.max(...items.map((i) => i.width))
@@ -36,12 +35,12 @@ export async function calculateShipping(req: Request, res: Response) {
         from: { postal_code: CEP_ORIGEM },
         to: { postal_code: cep_destino.replace(/\D/g, '') },
         package: {
-          height: Math.max(maxHeight, 2), // mínimo 2cm
-          width: Math.max(maxWidth, 11), // mínimo 11cm
-          length: Math.max(totalLength, 16), // mínimo 16cm
-          weight: Math.max(totalWeight, 0.3), // mínimo 300g
+          height: Math.max(maxHeight, 2),
+          width: Math.max(maxWidth, 11),
+          length: Math.max(totalLength, 16),
+          weight: Math.max(totalWeight, 0.3),
         },
-        services: '1,2', // 1=PAC, 2=SEDEX
+        services: '1,2',
       },
       {
         headers: {
@@ -51,14 +50,13 @@ export async function calculateShipping(req: Request, res: Response) {
       },
     )
 
-    // Filtrar apenas opções disponíveis
     const options = response.data
       .filter((opt: any) => !opt.error)
       .map((opt: any) => ({
         id: opt.id,
         name: opt.name,
         company: opt.company.name,
-        price: Math.round(opt.price * 100), // converter para centavos
+        price: Math.round(opt.price * 100),
         delivery_time: opt.delivery_time,
         currency: 'BRL',
       }))

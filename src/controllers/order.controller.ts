@@ -30,7 +30,6 @@ export async function createOrder(req: Request, res: Response) {
       return res.status(400).json({ error: 'Dados incompletos' })
     }
 
-    // Criar pedido no banco
     const order = await prisma.order.create({
       data: {
         userId,
@@ -50,7 +49,6 @@ export async function createOrder(req: Request, res: Response) {
       where: { id: userId },
     })
 
-    // Criar preferência usando SDK novo
     const preference = new Preference(client)
 
     const preferenceData = await preference.create({
@@ -67,11 +65,13 @@ export async function createOrder(req: Request, res: Response) {
           mode: 'not_specified',
         },
         back_urls: {
-          success: `${process.env.FRONTEND_URL}/pedido/sucesso?order_id=${order.id}`,
-          failure: `${process.env.FRONTEND_URL}/pedido/falha`,
-          pending: `${process.env.FRONTEND_URL}/pedido/pendente`,
+          success: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pedido/sucesso?order_id=${order.id}`,
+          failure: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pedido/falha`,
+          pending: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pedido/pendente`,
         },
-        auto_return: 'approved',
+        ...(process.env.MERCADOPAGO_ACCESS_TOKEN?.startsWith('APP_USR-3') && {
+          auto_return: 'approved',
+        }),
         external_reference: order.id,
         notification_url: `${process.env.BACKEND_URL || 'http://localhost:3001'}/orders/webhook`,
         payment_methods: {
@@ -84,7 +84,6 @@ export async function createOrder(req: Request, res: Response) {
       },
     })
 
-    // Atualizar pedido com ID do MP
     await prisma.order.update({
       where: { id: order.id },
       data: { paymentId: preferenceData.id },
@@ -103,36 +102,53 @@ export async function createOrder(req: Request, res: Response) {
 
 export async function webhook(req: Request, res: Response) {
   try {
-    const { type, data } = req.body
+    const type = req.body.type || req.query.topic
+    const paymentId = req.body.data?.id || req.query.id
 
-    if (type === 'payment') {
-      const paymentId = data.id
+    if (type !== 'payment' || !paymentId) {
+      return res.status(200).send('OK')
+    }
 
-      // Buscar pagamento usando SDK novo
-      const paymentClient = new Payment(client)
-      const payment = await paymentClient.get({ id: paymentId })
+    const paymentClient = new Payment(client)
+    const payment = await paymentClient.get({ id: String(paymentId) })
 
-      const orderReference = payment.external_reference
+    const orderReference = payment.external_reference
 
-      if (!orderReference) {
-        return res.status(200).send('OK')
+    if (!orderReference) {
+      return res.status(200).send('OK')
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderReference },
+      include: { user: true },
+    })
+
+    if (!order) {
+      return res.status(404).json({ error: 'Pedido não encontrado' })
+    }
+
+    let newStatus = order.status
+
+    if (payment.status === 'approved' && order.status !== 'PAID') {
+      newStatus = 'PAID'
+
+      const items = order.items as any[]
+
+      for (const item of items) {
+        if (item.variantId) {
+          await prisma.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.quantity } },
+          })
+        } else {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          })
+        }
       }
 
-      const order = await prisma.order.findUnique({
-        where: { id: orderReference },
-        include: { user: true },
-      })
-
-      if (!order) {
-        return res.status(404).json({ error: 'Pedido não encontrado' })
-      }
-
-      let newStatus = order.status
-
-      if (payment.status === 'approved') {
-        newStatus = 'PAID'
-
-        // Enviar email de confirmação
+      try {
         await sendEmail({
           to: order.user.email,
           subject: 'Pedido confirmado - Essenza',
@@ -145,19 +161,19 @@ export async function webhook(req: Request, res: Response) {
             <p>Obrigado pela preferência!</p>
           `,
         })
-      } else if (payment.status === 'rejected') {
-        newStatus = 'CANCELLED'
-      } else if (payment.status === 'in_process' || payment.status === 'pending') {
-        newStatus = 'PENDING_PAYMENT'
+      } catch (emailError) {
+        console.error('Erro ao enviar email de confirmação:', emailError)
       }
-
-      await prisma.order.update({
-        where: { id: order.id },
-        data: { status: newStatus },
-      })
-
-      return res.status(200).send('OK')
+    } else if (payment.status === 'rejected') {
+      newStatus = 'CANCELLED'
+    } else if (payment.status === 'in_process' || payment.status === 'pending') {
+      newStatus = 'PENDING_PAYMENT'
     }
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { status: newStatus },
+    })
 
     return res.status(200).send('OK')
   } catch (error: any) {

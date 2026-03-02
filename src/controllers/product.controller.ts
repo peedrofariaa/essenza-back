@@ -7,16 +7,35 @@ export async function listProducts(req: Request, res: Response) {
     const per_page = parseInt(req.query.per_page as string) || 8
     const sort = (req.query.sort as string) || 'createdAt'
     const order = (req.query.order as 'asc' | 'desc') || 'desc'
+    const search = req.query.search as string | undefined
+    const category = req.query.category as string | undefined
 
     const skip = (page - 1) * per_page
 
+    const where: any = { active: true }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+
+    if (category) {
+      where.category = category
+    }
+
     const [products, total] = await Promise.all([
       prisma.product.findMany({
-        where: { active: true },
+        where,
         include: {
           images: {
             orderBy: { position: 'asc' },
             take: 1,
+          },
+          variants: {
+            where: { active: true },
+            orderBy: { createdAt: 'asc' },
           },
         },
         orderBy: { [sort]: order },
@@ -27,7 +46,7 @@ export async function listProducts(req: Request, res: Response) {
     ])
 
     return res.json({
-      products,
+      data: products,
       pagination: {
         page,
         per_page,
@@ -49,7 +68,7 @@ export async function getProductBySlug(req: Request, res: Response) {
       where: { slug, active: true },
       include: {
         images: { orderBy: { position: 'asc' } },
-        variants: { where: { active: true } },
+        variants: { where: { active: true }, orderBy: { createdAt: 'asc' } },
       },
     })
 
@@ -79,11 +98,15 @@ export async function getProductsByCategory(req: Request, res: Response) {
           orderBy: { position: 'asc' },
           take: 1,
         },
+        variants: {
+          where: { active: true },
+          orderBy: { createdAt: 'asc' },
+        },
       },
       orderBy: { createdAt: 'desc' },
     })
 
-    return res.json(products)
+    return res.json({ data: products })
   } catch (error) {
     console.error('Erro ao buscar produtos por categoria:', error)
     return res.status(500).json({ error: 'Erro ao buscar produtos' })
