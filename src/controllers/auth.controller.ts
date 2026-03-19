@@ -141,7 +141,7 @@ export const login = async (req: Request, res: Response) => {
     const ok = await verifyPassword(password, user.password)
     if (!ok) return res.status(401).json({ message: 'Credenciais inválidas' })
 
-    const token = signToken({ sub: user.id, email: user.email })
+    const token = signToken({ sub: user.id, email: user.email }, '7d')
     setAuthCookie(res, token)
 
     const { ...safe } = user

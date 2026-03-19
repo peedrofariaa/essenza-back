@@ -205,3 +205,27 @@ export async function getOrderById(req: Request, res: Response) {
     return res.status(500).json({ error: 'Erro ao buscar pedido' })
   }
 }
+
+export async function getOrderByIdAdmin(req: Request, res: Response) {
+  try {
+    const { id } = req.params
+
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, cpf: true },
+        },
+      },
+    })
+
+    if (!order) {
+      return res.status(404).json({ error: 'Pedido não encontrado' })
+    }
+
+    return res.json(order)
+  } catch (error) {
+    console.error('Erro ao buscar pedido:', error)
+    return res.status(500).json({ error: 'Erro ao buscar pedido' })
+  }
+}
