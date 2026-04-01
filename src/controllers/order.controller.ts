@@ -164,6 +164,27 @@ export async function webhook(req: Request, res: Response) {
       } catch (emailError) {
         console.error('Erro ao enviar email de confirmação:', emailError)
       }
+      try {
+        const itemsList = (order.items as any[])
+          .map((i) => `<li>${i.name} x${i.quantity}</li>`)
+          .join('')
+
+        await sendEmail({
+          to: process.env.ADMIN_NOTIFY_EMAIL!,
+          subject: `🛍️ Novo pedido #${order.id} - Essenza`,
+          html: `
+      <h2>Novo pedido recebido!</h2>
+      <p><strong>Cliente:</strong> ${order.user.name} (${order.user.email})</p>
+      <p><strong>Total:</strong> ${(order.total_cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+      <p><strong>Frete:</strong> ${order.shippingService} — ${order.shippingDays} dias úteis</p>
+      <p><strong>Itens:</strong></p>
+      <ul>${itemsList}</ul>
+      <p><strong>Endereço:</strong> ${JSON.stringify(order.shippingAddress)}</p>
+    `,
+        })
+      } catch (emailError) {
+        console.error('Erro ao enviar notificação para admin:', emailError)
+      }
     } else if (payment.status === 'rejected') {
       newStatus = 'CANCELLED'
     } else if (payment.status === 'in_process' || payment.status === 'pending') {
