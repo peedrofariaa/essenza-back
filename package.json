@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "prisma generate && tsc",
+    "build": "rimraf dist && prisma generate && tsc",
     "start": "prisma migrate deploy && node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
@@ -31,7 +31,8 @@
     "jsonwebtoken": "^9.0.2",
     "mercadopago": "^2.11.0",
     "pg": "^8.16.3",
-    "resend": "^6.10.0"
+    "resend": "^6.10.0",
+    "rimraf": "^5.0.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
