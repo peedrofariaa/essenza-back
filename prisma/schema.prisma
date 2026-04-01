@@ -19,6 +19,7 @@ model Usuario {
   resetToken   String?
   resetExpires DateTime?
   orders       Order[]
+  role         String   @default("customer")
 }
 
 enum Category {
