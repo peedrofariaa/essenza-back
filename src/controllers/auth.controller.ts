@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { prisma } from '../lib/client'
-import { Prisma } from '../generated/prisma'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { hashPassword, verifyPassword } from '../utils/password'
 import { sendResetEmail } from '../utils/mail'
 import { newResetToken, resetExpiry } from '../utils/reset'
@@ -121,7 +121,7 @@ export const signup = async (req: Request, res: Response) => {
     const { ...safe } = user
     return res.status(201).json({ user: safe, token })
   } catch (e: any) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+    if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
       return res.status(409).json({ message: 'Email ou CPF já cadastrado.' })
     }
     return res.status(500).json({ message: 'Erro interno.' })
