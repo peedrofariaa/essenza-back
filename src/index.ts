@@ -17,7 +17,7 @@ app.use(
   cors({
     origin: [
       process.env.FRONT_ORIGIN || 'http://localhost:5173',
-      'http://localhost:3000', // essenza-admin
+      process.env.ADMIN_ORIGIN || 'http://localhost:3000',
     ],
     credentials: true,
   }),
