@@ -115,7 +115,7 @@ export const signup = async (req: Request, res: Response) => {
       data: { name, email, cpf: cleanCPF, birth: nascimento, password: senhaHash },
     })
 
-    const token = signToken({ sub: user.id, email: user.email })
+    const token = signToken({ sub: user.id, email: user.email, role: user.role })
     setAuthCookie(res, token)
 
     const { ...safe } = user
@@ -141,7 +141,7 @@ export const login = async (req: Request, res: Response) => {
     const ok = await verifyPassword(password, user.password)
     if (!ok) return res.status(401).json({ message: 'Credenciais inválidas' })
 
-    const token = signToken({ sub: user.id, email: user.email }, '7d')
+    const token = signToken({ sub: user.id, email: user.email, role: user.role }, '7d')
     setAuthCookie(res, token)
 
     const { ...safe } = user

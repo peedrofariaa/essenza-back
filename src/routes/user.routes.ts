@@ -1,10 +1,10 @@
 import { Router } from 'express'
 import { prisma } from '../lib/client'
-import { requireAuth } from '../middlewares/requireAuth'
+import { requireAdmin } from '../middlewares/requireAdmin'
 
 const router = Router()
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
   const { search, page = '1', per_page = '20' } = req.query as Record<string, string>
 
   const take = Math.max(1, Number(per_page) || 20)
@@ -27,6 +27,7 @@ router.get('/', requireAuth, async (req, res) => {
         name: true,
         email: true,
         cpf: true,
+        role: true,
         criadoEm: true,
         _count: { select: { orders: true } },
       },
@@ -40,7 +41,7 @@ router.get('/', requireAuth, async (req, res) => {
   res.json({ data, meta: { total, page: currentPage, per_page: take } })
 })
 
-router.get('/:id', requireAuth, async (req, res) => {
+router.get('/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id)
   const user = await prisma.usuario.findUnique({
     where: { id },
@@ -50,6 +51,7 @@ router.get('/:id', requireAuth, async (req, res) => {
       email: true,
       cpf: true,
       birth: true,
+      role: true,
       criadoEm: true,
       orders: {
         orderBy: { createdAt: 'desc' },

@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../lib/client'
-import { requireAuth } from '../middlewares/requireAuth'
+import { requireAdmin } from '../middlewares/requireAdmin'
 
 const router = Router()
 
@@ -52,7 +52,7 @@ router.get('/:slug', async (req, res) => {
   res.json(product)
 })
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
   try {
     const {
       name,
@@ -103,7 +103,7 @@ router.post('/', requireAuth, async (req, res) => {
   }
 })
 
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params
     const { name, slug, description, category, active, price_in_cents, stock, variants } = req.body
@@ -146,7 +146,7 @@ router.put('/:id', requireAuth, async (req, res) => {
   }
 })
 
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params
 
@@ -161,7 +161,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
   }
 })
 
-router.post('/:id/variants', requireAuth, async (req, res) => {
+router.post('/:id/variants', requireAdmin, async (req, res) => {
   const { id } = req.params
   const { label, aroma, color, stock } = req.body
 
@@ -184,7 +184,7 @@ router.post('/:id/variants', requireAuth, async (req, res) => {
   }
 })
 
-router.post('/:id/images', requireAuth, async (req, res) => {
+router.post('/:id/images', requireAdmin, async (req, res) => {
   const { id } = req.params
   const { url, alt, position } = req.body
   const image = await prisma.productImage.create({
@@ -193,7 +193,7 @@ router.post('/:id/images', requireAuth, async (req, res) => {
   res.status(201).json(image)
 })
 
-router.delete('/:id/images/:imageId', requireAuth, async (req, res) => {
+router.delete('/:id/images/:imageId', requireAdmin, async (req, res) => {
   const { imageId } = req.params
   await prisma.productImage.delete({ where: { id: imageId } })
   res.json({ message: 'Imagem removida' })
