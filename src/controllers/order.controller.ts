@@ -166,7 +166,10 @@ export async function webhook(req: Request, res: Response) {
       }
       try {
         const itemsList = (order.items as any[])
-          .map((i) => `<li>${i.name} x${i.quantity}</li>`)
+          .map(
+            (i) =>
+              `<li>${i.name}${i.variantLabel ? ` — ${i.variantLabel}` : ''} x${i.quantity}</li>`,
+          )
           .join('')
 
         await sendEmail({
