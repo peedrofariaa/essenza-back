@@ -6,6 +6,7 @@ import {
   getOrderByIdAdmin,
 } from '../controllers/order.controller'
 import { requireAuth } from '../middlewares/requireAuth'
+import { requireAdmin } from '../middlewares/requireAdmin'
 import { prisma } from '../lib/client'
 
 const router = Router()
@@ -15,7 +16,7 @@ router.post('/webhook', webhook)
 router.get('/admin/:id', requireAuth, getOrderByIdAdmin)
 router.get('/:id', requireAuth, getOrderById)
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
   const { status, page = '1', per_page = '20' } = req.query as Record<string, string>
 
   const take = Math.max(1, Number(per_page) || 20)
@@ -41,7 +42,7 @@ router.get('/', requireAuth, async (req, res) => {
   res.json({ data, meta: { total, page: currentPage, per_page: take } })
 })
 
-router.patch('/:id/status', requireAuth, async (req, res) => {
+router.patch('/:id/status', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params
     const { status } = req.body
