@@ -10,6 +10,7 @@ import cartRoutes from './routes/cart.routes'
 import shippingRoutes from './routes/shipping.routes'
 import orderRoutes from './routes/order.routes'
 import userRoutes from './routes/user.routes'
+import dashboardRoutes from './routes/dashboard.routes'
 
 const app = express()
 
@@ -31,6 +32,7 @@ app.use('/cart', cartRoutes)
 app.use('/shipping', shippingRoutes)
 app.use('/orders', orderRoutes)
 app.use('/users', userRoutes)
+app.use('/dashboard', dashboardRoutes)
 
 app.get('/', (_req, res) => {
   res.send('API Essenza no ar!')
