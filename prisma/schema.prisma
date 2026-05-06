@@ -27,6 +27,7 @@ enum Category {
   CORPO_BANHO
   DECORACAO
   AROMATIZADORES
+  KITS
 }
 
 model Product {
